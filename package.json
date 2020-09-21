@@ -1,0 +1,22 @@
+{
+    "name": "signal-bot-dockerized",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "makedoc": "./generateDoc.sh"
+    },
+    "repository": {
+        "type": "git",
+        "url": "http://git.firstdorsal.eu/firstdorsal/signal-bot-dockerized.git"
+    },
+    "homepage": "https://firstdorsal.eu/doc/signal-bot-dockerized/",
+    "author": "Paul Colin Hennig",
+    "license": "MIT",
+    "devDependencies": {
+        "dotenv": "^8.2.0",
+        "eslint": "^7.9.0",
+        "jsdoc": "^3.6.6",
+        "jsdoc-to-markdown": "^6.0.1"
+    }
+}
