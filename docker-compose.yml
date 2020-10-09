@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+    signal-bot:
+        #image: firstdorsal/signal-bot
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        restart: always
+        volumes:
+            - signal-bot:/root/.local/share/signal-cli/data/
+volumes:
+    signal-bot:
