@@ -16,7 +16,7 @@ makedoc:
     - git remote remove origin
     - git remote add origin https://runner:$RUNNER_PASSWORD@$CI_SERVER_HOST/$CI_PROJECT_PATH
     - git commit README.md -m "🤖 makedoc [skip ci]" || true
-    - git push --set-upstream origin HEAD:master || true
+    - git push --set-upstream origin HEAD:master -f || true
 
 mirror:
   stage: mirror
