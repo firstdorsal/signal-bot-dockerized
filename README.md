@@ -4,6 +4,9 @@
 ## The signal-cli in a container, accessible through an easy to use interface
 
 [![Code](https://ico.y.gy/website?down_color=red&down_message=offline&label=repository&up_color=success&up_message=online&url=https%3A%2F%2Fgit.y.gy%2Ffirstdorsal%2Fsignal-bot-dockerized&style=flat-square&logo=gitlab)](https://git.y.gy/firstdorsal/signal-bot-dockerized/)
+[![Docker](https://ico.y.gy/docker/v/firstdorsal/signal-bot?style=flat-square&logo=docker)](https://hub.docker.com/repository/docker/firstdorsal/signal-bot)
+
+
 
 
 # Install
