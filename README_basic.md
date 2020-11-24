@@ -17,6 +17,16 @@ or use the build on hub.docker.com
 ```
 firstdorsal/signal-bot
 ```
+
+**Default port is 3000. This can be changed with the enviroment variable PORT**
+
+**You should map a volume to let the signal-cli configuration persist:**
+
+```
+signal-bot:/root/.local/share/signal-cli/data/
+```
+
+
 # Basic usage
 
 **Initialize a registration with the signal server either via text or voice verification**
