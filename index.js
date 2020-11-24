@@ -1,6 +1,7 @@
 const express = require('express');
 const {
-    spawn
+    spawn,
+    exec
 } = require('child_process');
 const app = express();
 app.listen(process.env.PORT ? process.env.PORT : 3000);
@@ -81,6 +82,19 @@ app.post('/receive', async (req, res) => {
     signalCli(res, ['-u', req.body.number, 'receive', '--json']);
 });
 
+/**
+ * Contact the signal bot with a raw cursor.
+ * @example
+ * curl -X POST localhost:3000/raw --header "Content-Type: application/json" --data '{"raw":"-u +49someNumber receive"}'; echo
+ */
+app.post('/raw', async (req, res) => {
+    if (!req.body.raw) {
+        res.send('Error: Missing field: raw')
+        return;
+    }
+    signalCli(res, `${req.body.raw} --json`, true);
+});
+
 app.get("*", async (req, res) => {
     res.send({
         message: 'Invalid Path'
@@ -93,13 +107,13 @@ app.post("*", async (req, res) => {
     });
 });
 
-function signalCli(res, args) {
-    const signalCli = spawn(signalCliPath, args);
+function signalCli(res, args, raw = false) {
+    const signalCli = raw ? exec(`${signalCliPath} ${args}`) : spawn(signalCliPath, args);
     let stdres = [];
 
     signalCli.stderr.on('data', (data) => {
         if (debug) console.error(`stderr: ${data}`);
-        stdres.push(JSON.parse(data));
+        stdres.push(data.toString());
     });
 
     signalCli.stdout.on('data', (data) => {
