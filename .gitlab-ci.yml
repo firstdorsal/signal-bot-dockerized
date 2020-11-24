@@ -2,8 +2,9 @@ image: node:latest
 
 stages:
   - docker-build
-  - mirror
   - makedoc
+  - mirror
+  
 makedoc:
   stage: makedoc
   script:
