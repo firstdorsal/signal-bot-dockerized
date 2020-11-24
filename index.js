@@ -1,33 +1,35 @@
-"use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const express_1 = __importDefault(require("express"));
-const { spawn } = require('child_process');
-const app = express_1.default();
+const express = require('express');
+const {
+    spawn
+} = require('child_process');
+const app = express();
 app.listen(process.env.PORT ? process.env.PORT : 3000);
-app.use(express_1.default.json());
-const signalCliPath = '../signal-cli/bin/signal-cli'; //'signal-cli/bin/signal-cli';
+app.use(express.json());
+const signalCliPath = 'signal-cli/bin/signal-cli'; //'signal-cli/bin/signal-cli';
 console.log('server started');
 const debug = process.env.DEBUG ? process.env.DEBUG : true;
-app.post('/register/init', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+
+
+/**
+ * Initialize a registration with the signal server either via text or voice verification.
+ * @example
+ * curl -X POST localhost:3000/register/init --header "Content-Type: application/json" --data '{"number":"+49someNumber","voice":true}'; echo
+ */
+app.post('/register/init', async (req, res) => {
     if (!req.body.number) {
         res.send('Error: Missing field: number');
         return;
     }
     signalCli(res, req.body.voice ? ['-u', req.body.number, 'register', '--voice'] : ['-u', req.body.number, 'register']);
-}));
-app.post('/register/verify', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+
+
+/**
+ * Verify the previously initialized registration with the signal server by sending the verification code.
+ * @example
+ * curl -X POST localhost:3000/register/verify --header "Content-Type: application/json" --data '{"number":"+49someNumber","verificationCode":someVerificationCode}'; echo
+ */
+app.post('/register/verify', async (req, res) => {
     if (!req.body.number) {
         res.send('Error: Missing field: number');
         return;
@@ -37,8 +39,13 @@ app.post('/register/verify', (req, res) => __awaiter(void 0, void 0, void 0, fun
         return;
     }
     signalCli(res, ['-u', req.body.number, 'verify', req.body.verificationCode]);
-}));
-app.post('/send', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+/**
+ * Send a simple text message to one recipient
+ * @example
+ * curl -X POST localhost:3000/send --header "Content-Type: application/json" --data '{"message":"test","number":"+49someNumber","recipient":"+49someRecipientNumber"}'; echo
+ */
+app.post('/send', async (req, res) => {
     if (!req.body.number) {
         res.send('Error: Missing field: number');
         return;
@@ -52,47 +59,58 @@ app.post('/send', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     signalCli(res, ['-u', req.body.number, 'send', '-m', req.body.message, req.body.recipient]);
-}));
-app.post('/listIdentities', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+
+app.post('/listIdentities', async (req, res) => {
     if (!req.body.number) {
         res.send('Error: Missing field: number');
         return;
     }
     signalCli(res, ['-u', req.body.number, 'listIdentities']);
-}));
-app.post('/receive', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+/**
+ * Ask for new messages for given number.
+ * @example
+ * curl -X POST localhost:3000/receive --header "Content-Type: application/json" --data '{"number":"+49someNumber"}'; echo
+ */
+app.post('/receive', async (req, res) => {
     if (!req.body.number) {
-        res.send('Error: Missing field: number');
+        res.send('Error: Missing field: number')
         return;
     }
     signalCli(res, ['-u', req.body.number, 'receive', '--json']);
-}));
-app.get("*", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+
+app.get("*", async (req, res) => {
     res.send({
         message: 'Invalid Path'
     });
-}));
-app.post("*", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+});
+
+app.post("*", async (req, res) => {
     res.send({
         message: 'Invalid Path'
     });
-}));
+});
+
 function signalCli(res, args) {
     const signalCli = spawn(signalCliPath, args);
     let stdres = [];
+
     signalCli.stderr.on('data', (data) => {
-        if (debug)
-            console.error(`stderr: ${data}`);
-        stdres.push(data.toString().replace('\\n', ''));
+        if (debug) console.error(`stderr: ${data}`);
+        stdres.push(JSON.parse(data));
     });
+
     signalCli.stdout.on('data', (data) => {
-        if (debug)
-            console.error(`stdout: ${data}`);
-        stdres.push(data.toString().replace('\n', ''));
+        if (debug) console.error(`stdout: ${data}`);
+        stdres.push(JSON.parse(data));
     });
-    signalCli.on('close', (code) => __awaiter(this, void 0, void 0, function* () {
-        if (debug)
-            console.error(`exitCode: ${code}`);
-        res.send(JSON.stringify({ code, stdres }));
-    }));
+    signalCli.on('close', async (code) => {
+        if (debug) console.error(`exitCode: ${code}`);
+        res.send(JSON.stringify({
+            code,
+            stdres
+        }))
+    });
 }

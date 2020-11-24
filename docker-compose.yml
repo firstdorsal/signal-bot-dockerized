@@ -9,5 +9,7 @@ services:
         restart: always
         volumes:
             - signal-bot:/root/.local/share/signal-cli/data/
+        ports:
+        - 127.0.0.1:3000:3000
 volumes:
     signal-bot:
