@@ -2,6 +2,44 @@ image: node:latest
 
 stages:
   - docker-build
+  - mirror
+  - makedoc
+makedoc:
+  stage: makedoc
+  script:
+    # generate doc
+    - cat README_basic.md > README.md
+    # commit generated readme back to repo
+    - git config --global user.email "runner@$CI_SERVER_HOST"
+    - git config --global user.name "runner"
+    - git remote remove origin
+    - git remote add origin https://runner:$RUNNER_PASSWORD@$CI_SERVER_HOST/$CI_PROJECT_PATH
+    - git commit README.md -m "🤖 makedoc [skip ci]" || true
+    - git push --set-upstream origin HEAD:master || true
+
+mirror:
+  stage: mirror
+  script:
+    # generate doc
+    - echo "**This is a mirror of [$CI_SERVER_HOST/$CI_PROJECT_PATH](https://$CI_SERVER_HOST/$CI_PROJECT_PATH)**" > README.md
+    - cat README_basic.md >> README.md
+    #github
+    - git config --global user.email "runner@$CI_SERVER_HOST"
+    - git config --global user.name "runner"
+    - git fetch --unshallow origin
+    - git remote remove origin
+    - git remote add origin https://firstdorsal:$GITHUB_TOKEN@github.com/$CI_PROJECT_PATH.git
+    - git add -A    
+    - git commit -m "🤖 mirror [skip ci]"
+    - curl -u "firstdorsal:$GITHUB_TOKEN" https://api.github.com/user/repos -d "{\"name\":\"$CI_PROJECT_NAME\"}"
+    - git push --set-upstream origin HEAD:refs/heads/master -f
+    #gitlab
+    - git remote remove origin
+    - git remote add origin https://firstdorsal:$GITLAB_TOKEN@gitlab.com/$CI_PROJECT_PATH.git
+    - curl --request POST "https://gitlab.com/api/v4/projects?visibility=public&private_token=$GITLAB_TOKEN&name=$CI_PROJECT_NAME" ; echo
+    - curl --request DELETE "https://gitlab.com/api/v4/projects/$CI_PROJECT_NAMESPACE%2F$CI_PROJECT_NAME/protected_branches/master?private_token=$GITLAB_TOKEN" ; echo
+    - git push --set-upstream origin HEAD:refs/heads/master -f
+
 
 docker-build:
   stage: docker-build
