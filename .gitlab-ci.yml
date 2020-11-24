@@ -1,0 +1,13 @@
+image: node:latest
+
+stages:
+  - docker-build
+
+docker-build:
+  stage: docker-build
+  image: docker:latest
+  before_script:
+    - docker login -u "firstdorsal" -p "$DOCKER_TOKEN"
+  script:
+    - docker build --pull -t "firstdorsal/signal-bot" .
+    - docker push "firstdorsal/signal-bot"
